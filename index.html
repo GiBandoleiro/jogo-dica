@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dica - O Jogo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #f97316; --primary-dark: #ea580c; }
+        html, body { height: 100%; overflow: hidden; background-color: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        .app-shell { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 0; }
+        .app-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; max-width: 420px; background-color: white; }
+
+        @media (min-width: 768px) {
+            .app-container { height: auto; max-height: 95vh; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e5e7eb; overflow: hidden; }
+        }
+
+        .font-brand { font-family: 'Bebas Neue', cursive; letter-spacing: 0.05em; }
+        .btn { padding: 0.75rem 1rem; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s ease; transform: scale(1); text-align: center; }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .input-field { background-color: #f3f4f6; border: 2px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem; width: 100%; color: #111827; }
+        .input-field:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.4); }
+        .word-hidden { filter: blur(12px); user-select: none; transform: scale(0.95); }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="app" class="app-shell">
+        <div class="app-container">
+            <!-- Tela de Configuração -->
+            <div id="setup-screen" class="flex flex-col h-full p-4 overflow-y-auto">
+                <header class="text-center pt-6">
+                     <svg class="w-20 h-20 mx-auto text-orange-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 00-7 7c0 2.05.53 3.25 2.25 4.97L10 16.73V20h4v-3.27l2.75-2.76C18.47 12.25 19 11.05 19 9a7 7 0 00-7-7zM9 9a3 3 0 013-3 3 3 0 013 3 2.99 2.99 0 01-2 2.82V14H9v-2.18A2.99 2.99 0 019 9z"/></svg>
+                    <h1 class="text-8xl font-brand text-gray-800 mt-2">DICA</h1>
+                    <p class="text-gray-500 -mt-2 mb-4">O jogo de palavras para equipes.</p>
+                    <div class="text-left bg-gray-100 p-3 rounded-lg border text-sm text-gray-600">
+                        <p class="font-bold mb-1">Como Jogar:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Um jogador de cada vez vê a palavra secreta.</li>
+                            <li>O objetivo é fazer sua equipe adivinhar a palavra dando dicas de <strong>uma só palavra</strong>.</li>
+                            <li>Nomes próprios e palavras compostas são proibidos!</li>
+                            <li>Se a equipe errar, a vez de dar dica passa para a outra equipe, para a mesma palavra.</li>
+                        </ul>
+                    </div>
+                </header>
+                <main class="flex-grow my-6 space-y-4">
+                    <div class="bg-gray-100 p-4 rounded-xl border">
+                        <h2 class="font-brand text-2xl text-orange-600 mb-2">EQUIPES</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input id="team1-name" type="text" placeholder="Equipe 1" value="Equipe Laranja" class="input-field text-center font-semibold">
+                            <input id="team2-name" type="text" placeholder="Equipe 2" value="Equipe Azul" class="input-field text-center font-semibold">
+                        </div>
+                    </div>
+                     <div class="bg-gray-100 p-4 rounded-xl border">
+                        <h2 class="font-brand text-2xl text-orange-600 mb-2">PONTOS PARA VENCER: <span id="rounds-display" class="text-gray-800">10</span></h2>
+                        <input id="rounds-slider" type="range" min="5" max="15" value="10" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    </div>
+                     <div class="bg-gray-100 p-4 rounded-xl border">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="font-brand text-2xl text-orange-600">TEMAS</h2>
+                            <button id="all-themes-btn" onclick="app.toggleAllThemes(true)" class="text-sm font-semibold text-orange-600">SELECIONAR TODOS</button>
+                        </div>
+                        <div id="themes-container" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </main>
+                <footer class="pb-4">
+                    <button onclick="app.startGame()" class="w-full font-brand py-3 rounded-xl text-3xl btn btn-primary shadow-lg">COMEÇAR JOGO</button>
+                </footer>
+            </div>
+
+            <!-- Tela de Jogo -->
+            <div id="game-screen" class="hidden flex-col h-full p-4">
+                <header>
+                    <div class="h-7">
+                        <button onclick="app.showExitConfirmation()" class="p-1 text-gray-500 hover:text-gray-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center text-lg p-2 bg-gray-100 rounded-xl border">
+                        <div id="team1-score" class="font-bold text-center flex-1">Equipe Laranja: 0</div>
+                        <div class="font-brand text-3xl text-gray-700">RODADA <span id="round-counter">1</span></div>
+                        <div id="team2-score" class="font-bold text-center flex-1">Equipe Azul: 0</div>
+                    </div>
+                    <p id="turn-indicator" class="font-semibold text-center text-gray-600 mt-2">É a vez da equipe <span id="turn-team-name" class="text-orange-600">Laranja</span></p>
+                </header>
+                <main class="flex-grow my-4 flex flex-col justify-center items-center bg-gray-800 text-white rounded-2xl p-4 relative">
+                    <p class="absolute top-4 left-4 text-xs uppercase font-bold text-gray-400">Palavra Secreta</p>
+                    <div id="word-display-container" class="relative">
+                        <p id="word-display" class="font-brand text-5xl md:text-6xl text-center select-none word-hidden transition-all duration-300">PALAVRA SECRETA</p>
+                    </div>
+                    <button onclick="app.toggleWord()" class="absolute bottom-4 right-4 bg-white/20 p-3 rounded-full">
+                        <svg id="word-toggle-icon" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    </button>
+                </main>
+                <div class="h-1/3 flex flex-col">
+                    <div id="clues-area" class="flex-grow">
+                        <h3 class="font-brand text-xl text-center mb-2 text-orange-600">Dicas dadas</h3>
+                        <div id="clues-display" class="flex flex-wrap justify-center gap-2 bg-gray-100 p-2 rounded-lg min-h-[40px]"></div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <input id="clue-input" type="text" class="input-field flex-grow" placeholder="Escreva uma dica...">
+                        <button onclick="app.giveClue()" class="btn btn-primary font-bold">Dar Dica</button>
+                    </div>
+                </div>
+                <footer id="action-buttons" class="grid grid-cols-3 gap-2 pt-4"></footer>
+            </div>
+            
+            <div id="round-summary-screen" class="hidden flex-col h-full p-6 justify-center items-center text-center fade-in"></div>
+            <div id="end-screen" class="hidden flex-col h-full p-6 justify-center items-center text-center fade-in"></div>
+            
+            <!-- Modal de Confirmação de Saída -->
+            <div id="exit-confirmation-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center p-4 z-50">
+                <div class="bg-white p-6 rounded-2xl shadow-xl text-center w-full max-w-sm fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800">Sair do Jogo?</h2>
+                    <p class="text-gray-600 my-4">Tem certeza que deseja encerrar a partida e voltar ao menu?</p>
+                    <div class="flex justify-center gap-4">
+                        <button onclick="app.hideExitConfirmation()" class="btn bg-gray-200 text-gray-800 w-full">Cancelar</button>
+                        <button onclick="app.resetGame()" class="btn btn-primary w-full bg-red-500 hover:bg-red-600">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allWords = [
+            // Animais
+            {word: "Leão", theme: "Animais"}, {word: "Tigre", theme: "Animais"}, {word: "Elefante", theme: "Animais"}, {word: "Girafa", theme: "Animais"}, {word: "Macaco", theme: "Animais"}, {word: "Zebra", theme: "Animais"}, {word: "Crocodilo", theme: "Animais"}, {word: "Cobra", theme: "Animais"}, {word: "Tartaruga", theme: "Animais"}, {word: "Tubarão", theme: "Animais"}, {word: "Baleia", theme: "Animais"}, {word: "Golfinho", theme: "Animais"}, {word: "Polvo", theme: "Animais"}, {word: "Águia", theme: "Animais"}, {word: "Coruja", theme: "Animais"}, {word: "Pinguim", theme: "Animais"}, {word: "Galinha", theme: "Animais"}, {word: "Pato", theme: "Animais"}, {word: "Papagaio", theme: "Animais"}, {word: "Tucano", theme: "Animais"}, {word: "Morcego", theme: "Animais"}, {word: "Rato", theme: "Animais"}, {word: "Coelho", theme: "Animais"}, {word: "Esquilo", theme: "Animais"}, {word: "Porco", theme: "Animais"}, {word: "Vaca", theme: "Animais"}, {word: "Cavalo", theme: "Animais"}, {word: "Ovelha", theme: "Animais"}, {word: "Cachorro", theme: "Animais"}, {word: "Gato", theme: "Animais"}, {word: "Lobo", theme: "Animais"}, {word: "Raposa", theme: "Animais"}, {word: "Urso", theme: "Animais"}, {word: "Canguru", theme: "Animais"}, {word: "Coala", theme: "Animais"}, {word: "Panda", theme: "Animais"}, {word: "Preguiça", theme: "Animais"}, {word: "Formiga", theme: "Animais"}, {word: "Abelha", theme: "Animais"}, {word: "Aranha", theme: "Animais"},
+            
+            // Comida
+            {word: "Arroz", theme: "Comida"}, {word: "Feijão", theme: "Comida"}, {word: "Macarrão", theme: "Comida"}, {word: "Pão", theme: "Comida"}, {word: "Carne", theme: "Comida"}, {word: "Frango", theme: "Comida"}, {word: "Peixe", theme: "Comida"}, {word: "Ovo", theme: "Comida"}, {word: "Queijo", theme: "Comida"}, {word: "Leite", theme: "Comida"}, {word: "Batata", theme: "Comida"}, {word: "Tomate", theme: "Comida"}, {word: "Cebola", theme: "Comida"}, {word: "Alface", theme: "Comida"}, {word: "Maçã", theme: "Comida"}, {word: "Banana", theme: "Comida"}, {word: "Laranja", theme: "Comida"}, {word: "Uva", theme: "Comida"}, {word: "Morango", theme: "Comida"}, {word: "Pizza", theme: "Comida"}, {word: "Hambúrguer", theme: "Comida"}, {word: "Sushi", theme: "Comida"}, {word: "Lasanha", theme: "Comida"}, {word: "Sopa", theme: "Comida"}, {word: "Salada", theme: "Comida"}, {word: "Chocolate", theme: "Comida"}, {word: "Bolo", theme: "Comida"}, {word: "Sorvete", theme: "Comida"}, {word: "Pipoca", theme: "Comida"}, {word: "Café", theme: "Comida"}, {word: "Suco", theme: "Comida"}, {word: "Água", theme: "Comida"}, {word: "Sal", theme: "Comida"}, {word: "Açúcar", theme: "Comida"}, {word: "Farinha", theme: "Comida"}, {word: "Milho", theme: "Comida"}, {word: "Pimenta", theme: "Comida"}, {word: "Mel", theme: "Comida"}, {word: "Mostarda", theme: "Comida"}, {word: "Azeitona", theme: "Comida"},
+
+            // Esportes
+            {word: "Futebol", theme: "Esportes"}, {word: "Basquete", theme: "Esportes"}, {word: "Voleibol", theme: "Esportes"}, {word: "Tênis", theme: "Esportes"}, {word: "Natação", theme: "Esportes"}, {word: "Atletismo", theme: "Esportes"}, {word: "Boxe", theme: "Esportes"}, {word: "Judô", theme: "Esportes"}, {word: "Karatê", theme: "Esportes"}, {word: "Surfe", theme: "Esportes"}, {word: "Skate", theme: "Esportes"}, {word: "Ginástica", theme: "Esportes"}, {word: "Handebol", theme: "Esportes"}, {word: "Golfe", theme: "Esportes"}, {word: "Ciclismo", theme: "Esportes"}, {word: "Corrida", theme: "Esportes"}, {word: "Xadrez", theme: "Esportes"}, {word: "Dama", theme: "Esportes"}, {word: "Sinuca", theme: "Esportes"}, {word: "Boliche", theme: "Esportes"},
+            
+            // Objetos
+            {word: "Cadeira", theme: "Objetos"}, {word: "Mesa", theme: "Objetos"}, {word: "Sofá", theme: "Objetos"}, {word: "Cama", theme: "Objetos"}, {word: "Luminária", theme: "Objetos"}, {word: "Tapete", theme: "Objetos"}, {word: "Espelho", theme: "Objetos"}, {word: "Quadro", theme: "Objetos"}, {word: "Relógio", theme: "Objetos"}, {word: "Celular", theme: "Objetos"}, {word: "Computador", theme: "Objetos"}, {word: "Televisão", theme: "Objetos"}, {word: "Geladeira", theme: "Objetos"}, {word: "Fogão", theme: "Objetos"}, {word: "Panela", theme: "Objetos"}, {word: "Prato", theme: "Objetos"}, {word: "Copo", theme: "Objetos"}, {word: "Garfo", theme: "Objetos"}, {word: "Faca", theme: "Objetos"}, {word: "Colher", theme: "Objetos"}, {word: "Vassoura", theme: "Objetos"}, {word: "Escova", theme: "Objetos"}, {word: "Tesoura", theme: "Objetos"}, {word: "Lápis", theme: "Objetos"}, {word: "Caneta", theme: "Objetos"}, {word: "Livro", theme: "Objetos"}, {word: "Mochila", theme: "Objetos"}, {word: "Bolsa", theme: "Objetos"}, {word: "Chave", theme: "Objetos"}, {word: "Óculos", theme: "Objetos"}, {word: "Chapéu", theme: "Objetos"}, {word: "Sapato", theme: "Objetos"}, {word: "Calça", theme: "Objetos"}, {word: "Camisa", theme: "Objetos"}, {word: "Anel", theme: "Objetos"}, {word: "Brinco", theme: "Objetos"}, {word: "Colar", theme: "Objetos"}, {word: "Pulseira", theme: "Objetos"}, {word: "Martelo", theme: "Objetos"}, {word: "Prego", theme: "Objetos"},
+
+            // Profissões
+            {word: "Médico", theme: "Profissões"}, {word: "Professor", theme: "Profissões"}, {word: "Engenheiro", theme: "Profissões"}, {word: "Advogado", theme: "Profissões"}, {word: "Jornalista", theme: "Profissões"}, {word: "Programador", theme: "Profissões"}, {word: "Designer", theme: "Profissões"}, {word: "Arquiteto", theme: "Profissões"}, {word: "Cozinheiro", theme: "Profissões"}, {word: "Bombeiro", theme: "Profissões"}, {word: "Policial", theme: "Profissões"}, {word: "Músico", theme: "Profissões"}, {word: "Ator", theme: "Profissões"}, {word: "Pintor", theme: "Profissões"}, {word: "Escritor", theme: "Profissões"}, {word: "Cientista", theme: "Profissões"}, {word: "Piloto", theme: "Profissões"}, {word: "Motorista", theme: "Profissões"}, {word: "Vendedor", theme: "Profissões"}, {word: "Padeiro", theme: "Profissões"},
+            
+            // Ações (Verbos)
+            {word: "Correr", theme: "Ações"}, {word: "Pular", theme: "Ações"}, {word: "Nadar", theme: "Ações"}, {word: "Voar", theme: "Ações"}, {word: "Dormir", theme: "Ações"}, {word: "Acordar", theme: "Ações"}, {word: "Comer", theme: "Ações"}, {word: "Beber", theme: "Ações"}, {word: "Falar", theme: "Ações"}, {word: "Ouvir", theme: "Ações"}, {word: "Ver", theme: "Ações"}, {word: "Cheirar", theme: "Ações"}, {word: "Tocar", theme: "Ações"}, {word: "Sentir", theme: "Ações"}, {word: "Pensar", theme: "Ações"}, {word: "Escrever", theme: "Ações"}, {word: "Ler", theme: "Ações"}, {word: "Desenhar", theme: "Ações"}, {word: "Pintar", theme: "Ações"}, {word: "Cantar", theme: "Ações"}, {word: "Dançar", theme: "Ações"}, {word: "Jogar", theme: "Ações"}, {word: "Trabalhar", theme: "Ações"}, {word: "Estudar", theme: "Ações"}, {word: "Viajar", theme: "Ações"}, {word: "Cozinhar", theme: "Ações"}, {word: "Limpar", theme: "Ações"}, {word: "Construir", theme: "Ações"}, {word: "Destruir", theme: "Ações"}, {word: "Chorar", theme: "Ações"},
+            
+            // Lugares
+            {word: "Praia", theme: "Lugares"}, {word: "Montanha", theme: "Lugares"}, {word: "Floresta", theme: "Lugares"}, {word: "Deserto", theme: "Lugares"}, {word: "Cidade", theme: "Lugares"}, {word: "Biblioteca", theme: "Lugares"}, {word: "Museu", theme: "Lugares"}, {word: "Hospital", theme: "Lugares"}, {word: "Escola", theme: "Lugares"}, {word: "Parque", theme: "Lugares"}, {word: "Rio", theme: "Lugares"}, {word: "Lago", theme: "Lugares"}, {word: "Oceano", theme: "Lugares"}, {word: "Cachoeira", theme: "Lugares"}, {word: "Caverna", theme: "Lugares"}, {word: "Campo", theme: "Lugares"}, {word: "Ilha", theme: "Lugares"}, {word: "Vulcão", theme: "Lugares"}, {word: "Ponte", theme: "Lugares"}, {word: "Estrada", theme: "Lugares"},
+            
+            // Natureza
+            {word: "Árvore", theme: "Natureza"}, {word: "Flor", theme: "Natureza"}, {word: "Rio", theme: "Natureza"}, {word: "Oceano", theme: "Natureza"}, {word: "Nuvem", theme: "Natureza"}, {word: "Sol", theme: "Natureza"}, {word: "Lua", theme: "Natureza"}, {word: "Estrela", theme: "Natureza"}, {word: "Vento", theme: "Natureza"}, {word: "Chuva", theme: "Natureza"}, {word: "Neve", theme: "Natureza"}, {word: "Trovão", theme: "Natureza"}, {word: "Grama", theme: "Natureza"}, {word: "Folha", theme: "Natureza"}, {word: "Raiz", theme: "Natureza"},
+            
+            // Corpo Humano
+            {word: "Cabeça", theme: "Corpo Humano"}, {word: "Cabelo", theme: "Corpo Humano"}, {word: "Olho", theme: "Corpo Humano"}, {word: "Nariz", theme: "Corpo Humano"}, {word: "Boca", theme: "Corpo Humano"}, {word: "Dente", theme: "Corpo Humano"}, {word: "Língua", theme: "Corpo Humano"}, {word: "Orelha", theme: "Corpo Humano"}, {word: "Pescoço", theme: "Corpo Humano"}, {word: "Ombro", theme: "Corpo Humano"}, {word: "Braço", theme: "Corpo Humano"}, {word: "Mão", theme: "Corpo Humano"}, {word: "Dedo", theme: "Corpo Humano"}, {word: "Unha", theme: "Corpo Humano"}, {word: "Peito", theme: "Corpo Humano"}, {word: "Costas", theme: "Corpo Humano"}, {word: "Barriga", theme: "Corpo Humano"}, {word: "Perna", theme: "Corpo Humano"}, {word: "Joelho", theme: "Corpo Humano"}, {word: "Pé", theme: "Corpo Humano"}
+        ];
+        const themes = [...new Set(allWords.map(w => w.theme))];
+        const screens = { setup: document.getElementById('setup-screen'), game: document.getElementById('game-screen'), summary: document.getElementById('round-summary-screen'), end: document.getElementById('end-screen') };
+        const exitModal = document.getElementById('exit-confirmation-modal');
+
+        const app = {
+            gameState: {},
+
+            init() {
+                this.setupThemes();
+                document.getElementById('rounds-slider').addEventListener('input', (e) => {
+                    document.getElementById('rounds-display').textContent = e.target.value;
+                });
+                this.showScreen('setup');
+                this.setupSummaryAndEndScreens();
+            },
+
+            setupThemes() {
+                const container = document.getElementById('themes-container');
+                container.innerHTML = themes.map(theme => 
+                    `<button data-theme="${theme}" onclick="this.classList.toggle('active')" class="theme-tag px-3 py-1 rounded-full font-semibold bg-gray-200 text-gray-700 transition-colors">
+                        ${theme}
+                    </button>`
+                ).join('');
+                const style = document.createElement('style');
+                style.innerHTML = `.theme-tag.active { background-color: #f97316; color: white; }`;
+                document.head.appendChild(style);
+                this.toggleAllThemes(true);
+            },
+
+            toggleAllThemes(selectAll) {
+                const themes = document.querySelectorAll('.theme-tag');
+                const btn = document.getElementById('all-themes-btn');
+                if (selectAll) {
+                    themes.forEach(t => t.classList.add('active'));
+                    btn.textContent = "DESMARCAR TODOS";
+                    btn.onclick = () => app.toggleAllThemes(false);
+                } else { 
+                    themes.forEach(t => t.classList.remove('active'));
+                    btn.textContent = "SELECIONAR TODOS";
+                    btn.onclick = () => app.toggleAllThemes(true);
+                }
+            },
+            
+            showScreen(screenId) {
+                Object.values(screens).forEach(s => { s.classList.add('hidden'); s.classList.remove('flex'); });
+                screens[screenId].classList.remove('hidden');
+                screens[screenId].classList.add('flex');
+            },
+            
+            showExitConfirmation() { exitModal.classList.remove('hidden'); },
+            hideExitConfirmation() { exitModal.classList.add('hidden'); },
+
+            startGame() {
+                const selectedThemes = [...document.querySelectorAll('.theme-tag.active')].map(btn => btn.dataset.theme);
+                if(selectedThemes.length === 0) { alert("Por favor, selecione pelo menos um tema!"); return; }
+                const pointsToWin = parseInt(document.getElementById('rounds-slider').value);
+                const filteredWords = allWords.filter(w => selectedThemes.includes(w.theme));
+
+                this.gameState = {
+                    team1Name: document.getElementById('team1-name').value || 'Equipe Laranja', team2Name: document.getElementById('team2-name').value || 'Equipe Azul',
+                    team1Score: 0, team2Score: 0, pointsToWin: pointsToWin,
+                    currentRound: 0, words: this.shuffleArray([...filteredWords]),
+                    currentWord: '', turn: 1, guessAttempts: 0, currentClues: []
+                };
+                this.nextRound();
+            },
+            
+            nextRound() {
+                if (this.gameState.team1Score >= this.gameState.pointsToWin || this.gameState.team2Score >= this.gameState.pointsToWin) {
+                    this.endGame(); return;
+                }
+                this.gameState.currentRound++;
+                if(this.gameState.words.length === 0) {
+                    alert("Ficaram sem palavras! O jogo vai terminar.");
+                    this.endGame(); return;
+                }
+                this.gameState.currentWord = this.gameState.words.pop().word;
+                this.gameState.guessAttempts = 0;
+                this.gameState.currentClues = [];
+                this.gameState.turn = (this.gameState.currentRound % 2 === 1) ? 1 : 2;
+                this.updateGameUI();
+                this.showScreen('game');
+            },
+            
+            giveClue() {
+                const clueInput = document.getElementById('clue-input');
+                const clue = clueInput.value.trim();
+                if (!clue || clue.includes(' ')) {
+                    alert("A dica deve ser uma única palavra e não pode estar vazia."); return;
+                }
+                this.gameState.currentClues.push(clue);
+                clueInput.value = '';
+                this.renderClues();
+            },
+
+            renderClues() {
+                const container = document.getElementById('clues-display');
+                container.innerHTML = this.gameState.currentClues.map(clue => 
+                    `<span class="bg-gray-300 text-gray-800 px-3 py-1 rounded-full font-semibold">${clue}</span>`
+                ).join('');
+            },
+
+            updateGameUI() {
+                document.getElementById('team1-score').textContent = `${this.gameState.team1Name}: ${this.gameState.team1Score}`;
+                document.getElementById('team2-score').textContent = `${this.gameState.team2Name}: ${this.gameState.team2Score}`;
+                document.getElementById('round-counter').textContent = `${this.gameState.currentRound}`;
+                const turnTeamNameEl = document.getElementById('turn-team-name');
+                turnTeamNameEl.textContent = this.gameState.turn === 1 ? this.gameState.team1Name : this.gameState.team2Name;
+                turnTeamNameEl.style.color = this.gameState.turn === 1 ? '#f97316' : '#3b82f6';
+                document.getElementById('word-display').textContent = this.gameState.currentWord;
+                document.getElementById('word-display').classList.add('word-hidden');
+                this.renderClues();
+                this.renderActionButtons();
+            },
+
+            renderActionButtons() {
+                const container = document.getElementById('action-buttons');
+                container.innerHTML = `
+                    <button onclick="app.handleGuess(true)" class="btn bg-green-500 hover:bg-green-600 text-white font-brand text-xl shadow-lg">ACERTOU!</button>
+                    <button onclick="app.skipWord()" class="btn bg-gray-400 hover:bg-gray-500 text-white font-brand text-xl shadow-lg">PULAR</button>
+                    <button onclick="app.handleGuess(false)" class="btn bg-red-500 hover:bg-red-600 text-white font-brand text-xl shadow-lg">ERROU</button>
+                `;
+            },
+            
+            handleGuess(correct) {
+                if (correct) {
+                    const points = this.gameState.guessAttempts === 0 ? 2 : 1;
+                    if (this.gameState.turn === 1) this.gameState.team1Score += points;
+                    else this.gameState.team2Score += points;
+                    const winnerName = this.gameState.turn === 1 ? this.gameState.team1Name : this.gameState.team2Name;
+                    this.showSummary(`${winnerName} marcou ${points} ponto(s)!`);
+                } else {
+                    this.gameState.guessAttempts++;
+                    this.gameState.turn = this.gameState.turn === 1 ? 2 : 1;
+                    this.updateGameUI();
+                }
+            },
+            
+            skipWord() {
+                this.showSummary("Palavra pulada! Ninguém pontuou.");
+            },
+            
+            showSummary(resultText) {
+                document.getElementById('summary-word').textContent = this.gameState.currentWord;
+                document.getElementById('summary-result').textContent = resultText;
+                document.getElementById('summary-score1').textContent = `${this.gameState.team1Name}: ${this.gameState.team1Score}`;
+                document.getElementById('summary-score2').textContent = `${this.gameState.team2Name}: ${this.gameState.team2Score}`;
+                const nextBtn = document.getElementById('next-round-btn');
+                const willEnd = this.gameState.team1Score >= this.gameState.pointsToWin || this.gameState.team2Score >= this.gameState.pointsToWin;
+                nextBtn.textContent = willEnd ? "VER RESULTADO FINAL" : "PRÓXIMA RODADA";
+                this.showScreen('summary');
+            },
+
+            endGame() {
+                let winnerText;
+                if(this.gameState.team1Score > this.gameState.team2Score) winnerText = `A equipe "${this.gameState.team1Name}" venceu!`;
+                else if (this.gameState.team2Score > this.gameState.team1Score) winnerText = `A equipe "${this.gameState.team2Name}" venceu!`;
+                else winnerText = "Foi um empate!";
+                document.getElementById('winner-text').textContent = winnerText;
+                document.getElementById('final-score1').textContent = `${this.gameState.team1Name}: ${this.gameState.team1Score}`;
+                document.getElementById('final-score2').textContent = `${this.gameState.team2Name}: ${this.gameState.team2Score}`;
+                this.showScreen('end');
+            },
+            
+            toggleWord() { document.getElementById('word-display').classList.toggle('word-hidden'); },
+            resetGame() { this.hideExitConfirmation(); this.showScreen('setup'); },
+
+            shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            },
+
+            setupSummaryAndEndScreens() {
+                screens.summary.innerHTML = `<p class="font-semibold text-gray-600">Fim da rodada!</p><h2 id="summary-word" class="font-brand text-6xl my-4 text-orange-500">PALAVRA</h2><p id="summary-result" class="text-2xl font-bold"></p><div class="flex w-full justify-around mt-8 text-xl"><div id="summary-score1" class="font-bold"></div><div id="summary-score2" class="font-bold"></div></div><button id="next-round-btn" onclick="app.nextRound()" class="w-full font-brand py-3 rounded-xl text-3xl btn btn-primary mt-12"></button>`;
+                screens.end.innerHTML = `<h2 class="text-6xl font-brand text-gray-800">FIM DE JOGO!</h2><p id="winner-text" class="text-3xl font-bold my-6"></p><div class="flex w-full justify-around mt-8 text-2xl"><div id="final-score1" class="font-bold"></div><div id="final-score2" class="font-bold"></div></div><button onclick="app.resetGame()" class="w-full font-brand py-3 rounded-xl text-3xl btn btn-primary mt-12">JOGAR NOVAMENTE</button>`;
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
+
